@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Replace with your Jenkins credentials ID
+        DOCKERHUB_CREDENTIALS = credentials('0c490ec1-7dc9-494f-a1be-f6524b277542')
         DOCKERHUB_USERNAME = "${DOCKERHUB_CREDENTIALS_USR}"
         DOCKERHUB_PASSWORD = "${DOCKERHUB_CREDENTIALS_PSW}"
     }
@@ -12,24 +12,22 @@ pipeline {
             steps {
                 script {
                     // Clone repo
-                    git url: 'https://github.com/your-username/your-repo.git', branch: 'main'
+                    git url: 'https://github.com/amruthaharshi0912/docker.git', branch: 'main'
 
                     // Docker login
                     sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
 
-                    // Build Maven image
-                    sh 'docker build -t ${DOCKERHUB_USERNAME}/maven-image:latest ./maven'
+                    // Build and push Maven image
+                    sh "docker build -t ${DOCKERHUB_USERNAME}/maven-image:latest ./maven"
+                    sh "docker push ${DOCKERHUB_USERNAME}/maven-image:latest"
 
-                    // Build Git image
-                    sh 'docker build -t ${DOCKERHUB_USERNAME}/git-image:latest ./git'
+                    // Build and push Git image
+                    sh "docker build -t ${DOCKERHUB_USERNAME}/git-image:latest ./git"
+                    sh "docker push ${DOCKERHUB_USERNAME}/git-image:latest"
 
-                    // Build Tomcat image
-                    sh 'docker build -t ${DOCKERHUB_USERNAME}/tomcat-image:latest ./tomcat'
-
-                    // Push all images
-                    sh 'docker push ${DOCKERHUB_USERNAME}/maven-image:latest'
-                    sh 'docker push ${DOCKERHUB_USERNAME}/git-image:latest'
-                    sh 'docker push ${DOCKERHUB_USERNAME}/tomcat-image:latest'
+                    // Build and push Tomcat image
+                    sh "docker build -t ${DOCKERHUB_USERNAME}/tomcat-image:latest ./tomcat"
+                    sh "docker push ${DOCKERHUB_USERNAME}/tomcat-image:latest"
                 }
             }
         }
