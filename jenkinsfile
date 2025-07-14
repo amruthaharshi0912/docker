@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Replace with your Jenkins credentials ID
+        DOCKERHUB_USERNAME = "${DOCKERHUB_CREDENTIALS_USR}"
+        DOCKERHUB_PASSWORD = "${DOCKERHUB_CREDENTIALS_PSW}"
+    }
+
+    stages {
+        stage('Clone, Build & Push All Images') {
+            steps {
+                script {
+                    // Clone repo
+                    git url: 'https://github.com/your-username/your-repo.git', branch: 'main'
+
+                    // Docker login
+                    sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+
+                    // Build Maven image
+                    sh 'docker build -t ${DOCKERHUB_USERNAME}/maven-image:latest ./maven'
+
+                    // Build Git image
+                    sh 'docker build -t ${DOCKERHUB_USERNAME}/git-image:latest ./git'
+
+                    // Build Tomcat image
+                    sh 'docker build -t ${DOCKERHUB_USERNAME}/tomcat-image:latest ./tomcat'
+
+                    // Push all images
+                    sh 'docker push ${DOCKERHUB_USERNAME}/maven-image:latest'
+                    sh 'docker push ${DOCKERHUB_USERNAME}/git-image:latest'
+                    sh 'docker push ${DOCKERHUB_USERNAME}/tomcat-image:latest'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout'
+        }
+    }
+}
